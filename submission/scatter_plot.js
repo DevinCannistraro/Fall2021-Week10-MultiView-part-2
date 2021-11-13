@@ -15,38 +15,24 @@ function scatter_plot(X,Y,markersize,
     let colorScale= d3.scaleLinear().domain(d3.extent(ColorData)).range(['steelblue','brown'])
     let axis = d3.select(`#${axis_key}`)
 
-    test = axis.selectAll('.markers')
+    axis.append("circle").attr("cx",800).attr("cy",130).attr("r", 12).style("fill", colorScale(0))
+    axis.append("circle").attr("cx",800).attr("cy",160).attr("r", 12).style("fill", colorScale(1))
+    axis.append("circle").attr("cx",800).attr("cy",190).attr("r", 12).style("fill", colorScale(2))
+    axis.append("text").attr("x", 820).attr("y", 130).text("Torgersen").style("font-size", "35px").attr("alignment-baseline","middle")
+    axis.append("text").attr("x", 820).attr("y", 160).text("Biscoe").style("font-size", "35px").attr("alignment-baseline","middle")
+    axis.append("text").attr("x", 820).attr("y", 190).text("Dream").style("font-size", "35px").attr("alignment-baseline","middle")
+
+    axis.selectAll('.markers')
         .data(X)
         .enter()
         .append('g')
         .attr('transform', function(d,i) {
             return `translate(${xScale(X[i])}, ${yScale(Y[i])})`})
-        .append('circle')
-        .attr("class",function (d,i){
-                    return `cls_${i}`})
-        .attr("r",markersize)
-        .attr("fill",function (d,i){return colorScale(ColorData[i])})
-        .on("mouseenter",function (){
-            let mouse_selected_element_class=d3.select(this).attr('class')
-            d3.selectAll(`circle`).classed("highlighted",false).attr("r",markersize)
-            d3.selectAll(`.${mouse_selected_element_class}`)
-                .classed("highlighted",true)
-                .transition()
-                .duration(1000)
-                .ease(d3.easeBounceOut)
-                .attr("r",markersize*4)
-
-        })
-        .on("mouseleave",function(){
-            d3.selectAll(`circle`).classed("highlighted",false).transition().duration(1000).ease(d3.easeBounceOut).attr("r",markersize)
-        })
-
-    console.log(test)
-
-
-
-
-
+        .append('circle').attr("r",function(d,i)
+        {
+            return markersize[i]})
+        .style("fill",function (d,i){return colorScale(ColorData[i])})
+        
     // x and y Axis function
     let x_axis = d3.axisBottom(xScale).ticks(4)
     let y_axis = d3.axisLeft(yScale).ticks(4)
@@ -67,11 +53,14 @@ function scatter_plot(X,Y,markersize,
         .text(xLabel)
 
     axis.append("g")
-        .attr("transform", `translate(${40},${500}) rotate(270)`)
+        .attr("transform", `translate(${35},${500}) rotate(270)`)
         .append("text")
         .attr("class","label")
         .attr("text-anchor","middle")
         .text(yLabel)
+
+
+
     // Title
     axis.append('text')
         .attr('x',500)

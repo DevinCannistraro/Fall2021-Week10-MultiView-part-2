@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>joint plot</title>
+
+    <script src="scatter_plot.js?2"></script>
+    <script src="bar_plot.js?2"></script>
+
+    <link rel="stylesheet" href="../styles/style.css">
+    <style>
+        .fig{
+            fill: #faf8f8;
+        }
+        table{
+            border: 1px solid #d2bcbc;
+            border-collapse: collapse;
+            width: 60vw;
+        }
+        td{
+            border: 1px solid #d2bcbc;
+            border-collapse: collapse;
+            padding: 10px;
+            width: 10vw;
+        }
+    </style>
+    <script src="../lib/d3.js"></script>
+
+
+</head>
+<body>
+
+<!-- https://seaborn.pydata.org/generated/seaborn.jointplot.html -->
+<!--palmer_penguin_species: https://raw.githubusercontent.com/datavizpyr/data/master/palmer_penguin_species.tsv -->
+graph mode (0-2 (changes axis))
+<input type="number" id="buttonXlim" value=0>
+<div>^^^^^^^^^^^^^^LOOK UP HERE ^^^^^^^^^^^^^</div>
+<table>
+    <tr>
+        <td><svg width="500px" height="80px"  id="top"></svg></td>
+        <td width="10%">&nbsp</td>
+    </tr>
+    <tr>
+        <td><svg width="500px" height="500px" viewBox="0 0 1000 1000" id="main"></svg></td>
+        <td><svg width="150px" height="500px" id="right"></svg></td>
+    </tr>
+</table>
+
+
+
+
+
+<script>
+    function render_graph(render_mode)
+    {
+        
+        let palmer_penguin_species = "../data/palmer_penguin_species.tsv";
+        // loading data
+        d3.tsv(palmer_penguin_species).then(main)
+
+        // Subplots
+        let fig_main = d3.select("#main")
+            .append("g")
+            .append('rect')
+            .attr("class","fig")
+            .attr("width","100%")
+            .attr("height","100%")
+        // top svg
+        let fig_top = d3.select("#top")
+            .append("g")
+            .append('rect')
+            .attr("class","fig")
+            .attr("width","100%")
+            .attr("height","100%")
+        // right svg
+        let fig_right = d3.select("#right")
+            .append("g")
+            .append('rect')
+            .attr("class","fig")
+            .attr("width","100%")
+            .attr("height","100%")
+
+        function scale(num,array)
+        {
+            
+            let min = Math.min(...array)
+            let max = Math.max(...array)
+            range = max - min
+            //console.log(array)
+            scaledVal = ((num + 1) / max) * 20
+            //scaledVal = ((num - min + 1) / range) * 20
+            console.log(scaledVal)
+            return scaledVal
+        }
+
+        function main(data){
+            // fetch data from table
+            let culmen_length_mm = d3.map(data,function (d){
+                return +d.culmen_length_mm})
+            let culmen_depth_mm = d3.map(data,function (d){
+                return +d.culmen_depth_mm})
+            let flipper_length_mm = d3.map(data,function (d){
+                return +d.flipper_length_mm})
+            let species = d3.map(data,function (d){
+                return d.species})
+            let species_types = new Set(species)
+
+            let species_code = d3.map(data,function (d) {
+                species = d.species
+                if (species === "Adelie") {
+                    return 0
+                } else if (species === "Gentoo") {
+                    return 1
+                } else {
+                    return 2
+                }
+            })
+
+            let island_code =d3.map(data,function (d) {
+                island_name = d.island
+                if(island_name === "Torgersen")
+                    return 0
+                else if (island_name === "Biscoe")
+                {
+                    return 1
+                }
+                else
+                {
+                    return 2
+                }
+            })
+
+            console.log("length");
+            console.log(flipper_length_mm);
+            console.log(culmen_length_mm);
+            // main svg
+            if(render_mode==0)
+            {
+                scatter_plot(culmen_length_mm,
+                    culmen_depth_mm,
+                    flipper_length_mm.map(num=>scale(num,flipper_length_mm)),
+                    island_code,
+                    'main'
+                    ,title='Penguin Species',
+                    xLabel="culmen_length_mm",
+                    yLabel="culmen_depth_mm");
+            }else if(render_mode==1)
+            {
+                scatter_plot(flipper_length_mm,
+                    culmen_depth_mm,
+                    culmen_length_mm.map(num=>scale(num,culmen_length_mm)),
+                    island_code,
+                    'main'
+                    ,title='Penguin Species',
+                    xLabel="flipper_length_mm",
+                    yLabel="culmen_depth_mm");
+            }else{
+                scatter_plot(culmen_length_mm,
+                    flipper_length_mm,
+                    culmen_depth_mm.map(num=>scale(num,culmen_depth_mm)),
+                    island_code,
+                    'main'
+                    ,title='Penguin Species',
+                    xLabel="culmen_length_mm",
+                    yLabel="flipper_length_mm");
+            }
+            //#############
+            bar_plot(culmen_depth_mm, 10,'top')
+            h_bar_plot(culmen_length_mm,10,'right')
+            
+        }
+    }
+    render_graph(0)
+    function updateGraph()
+    {
+        console.log(this.value)
+        render_graph(this.value)
+    }
+    d3.select("#buttonXlim").on("input", updateGraph )
+</script>
+
+</body>
+</html>
